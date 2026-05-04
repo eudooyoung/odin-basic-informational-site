@@ -1,44 +1,47 @@
 import http from "node:http";
 import fs from "node:fs";
-
-const routes = {};
-const fileNames = [
-  "./index.html",
-  "./about.html",
-  "./contact-me.html",
-  "./404.html",
+const paths = [
+    "./index.html",
+    "./about.html",
+    "./contact-me.html",
+    "./404.html",
 ];
-fileNames.forEach((fileName) => {
-  fs.readFile(fileName, "utf-8", (err, data) => {
-    if (err) {
-      console.error(err);
-    }
-    const key = fileName.slice(2, -5);
-    routes[key] = data;
-  });
+const routes = {};
+paths.forEach((path) => {
+    fs.readFile(path, "utf-8", (err, data) => {
+        if (err) {
+            console.error(err);
+        }
+        const key = path.slice(2, -5);
+        routes[key] = data;
+    });
 });
-
+const getPage = (url) => {
+    let page;
+    switch (url) {
+        case "/": {
+            page = routes["index"];
+            break;
+        }
+        case "/about": {
+            page = routes["about"];
+            break;
+        }
+        case "/contact-me": {
+            page = routes["contact-me"];
+            break;
+        }
+        default: {
+            page = routes["404"];
+        }
+    }
+    return page;
+};
 const server = http.createServer();
-
 server.on("request", (request, response) => {
-  response.writeHead(200, { "Content-Type": "text/html" });
-  switch (request.url) {
-    case "/": {
-      response.end(routes["index"]);
-      break;
-    }
-    case "/about": {
-      response.end(routes["about"]);
-      break;
-    }
-    case "/contact-me": {
-      response.end(routes["contact-me"]);
-      break;
-    }
-    default: {
-      response.end(routes["404"]);
-    }
-  }
+    response.writeHead(200, { "Content-Type": "text/html" });
+    const page = getPage(request.url);
+    response.end(page);
 });
-
 server.listen(8080);
+//# sourceMappingURL=index.js.map
