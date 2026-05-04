@@ -1,7 +1,8 @@
-import http from "node:http";
+import express from "express";
 import fs from "node:fs";
 import type { Routes } from "./types.js";
 
+const app = express();
 const paths = [
   "./index.html",
   "./about.html",
@@ -9,6 +10,7 @@ const paths = [
   "./404.html",
 ];
 const routes: Routes = {};
+const PORT = process.env.PORT;
 
 paths.forEach((path) => {
   fs.readFile(path, "utf-8", (err, data) => {
@@ -20,35 +22,14 @@ paths.forEach((path) => {
   });
 });
 
-const getPage = (url: string) => {
-  let page;
-  switch (url) {
-    case "/": {
-      page = routes["index"];
-      break;
-    }
-    case "/about": {
-      page = routes["about"];
-      break;
-    }
-    case "/contact-me": {
-      page = routes["contact-me"];
-      break;
-    }
-    default: {
-      page = routes["404"];
-    }
+app.get("/", (_, res) => res.send(routes["index"]));
+app.get("/about", (_, res) => res.send(routes["about"]));
+app.get("/contact-me", (_, res) => res.send(routes["contact-me"]));
+app.get("/*splat", (_, res) => res.send(routes["404"]));
+
+app.listen(PORT, (error) => {
+  if (error) {
+    throw error;
   }
-
-  return page;
-};
-
-const server = http.createServer();
-
-server.on("request", (request, response) => {
-  response.writeHead(200, { "Content-Type": "text/html" });
-  const page = getPage(request.url!);
-  response.end(page);
+  console.log(`Basic informational app - listenting on port ${PORT}`);
 });
-
-server.listen(8080);
